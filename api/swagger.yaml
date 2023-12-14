@@ -1,0 +1,209 @@
+openapi: 3.0.3
+
+servers:
+  - description: Dev server
+    url: https://localhost:8080
+
+info:
+  title: TODOLIST API
+  version: 0.0.1
+  description: |
+    API для бэкэнда приложения TODOLIST
+
+tags:
+  - name: "Системные"
+  - name: "Задачи"
+
+paths:
+  /health:
+    get:
+      tags:
+        - "Системные"
+      operationId: GetHealth
+      summary: Проверка сервера на работоспособность
+      responses:
+        200:
+          $ref: "#/components/responses/Success"
+
+  /tasks:
+    post:
+      tags:
+        - "Задачи"
+      operationId: CreateTask
+      summary: Cоздает задачу
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RequestCreateTask"
+      responses:
+        201:
+          description: Генерирует задачу
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponseCreateTask"
+        400:
+          $ref: "#/components/responses/Error"
+        500:
+          $ref: "#/components/responses/Error"
+    get:
+      tags:
+        - "Задачи"
+      operationId: GetTasks
+      summary: Получить задачи
+      responses:
+        200:
+          description: Генерирует
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponseGetTasks"
+        400:
+          $ref: "#/components/responses/Error"
+        500:
+          $ref: "#/components/responses/Error"
+  /tasks/{id}:
+    put:
+      tags:
+        - "Задачи"
+      operationId: FinishTask
+      summary: Получить задачи
+      parameters:
+        - $ref: "#/components/parameters/ID"
+      responses:
+        201:
+          description: Успешно закрыли задачу
+        400:
+          $ref: "#/components/responses/Error"
+        500:
+          $ref: "#/components/responses/Error"
+    delete:
+      tags:
+        - "Задачи"
+      operationId: DeleteTask
+      summary: Удалить задачу
+      parameters:
+        - $ref: "#/components/parameters/ID"
+      responses:
+        204:
+          description: Успешно удалили задачу
+        400:
+          $ref: "#/components/responses/Error"
+        500:
+          $ref: "#/components/responses/Error"
+
+components:
+  schemas:
+    RequestCreateTask:
+      description: Тело запроса для создания задачи
+      type: object
+      required:
+        - title
+      properties:
+       title:
+         type: string
+       description:
+         type: string
+
+    ResponseCreateTask:
+      description: Тело ответа для создания задачи
+      type: object
+      required:
+        - id
+        - title
+      properties:
+        id:
+          $ref: "#/components/schemas/UUID"
+        title:
+          type: string
+        description:
+          type: string
+
+    ResponseGetTasks:
+      description: Тело ответа получения задач
+      type: array
+      items:
+        $ref: "#/components/schemas/Task"
+
+    Task:
+      type: object
+      required:
+        - id
+        - title
+      properties:
+        id:
+          $ref: "#/components/schemas/UUID"
+        title:
+          type: string
+        description:
+          type: string
+
+    RespSuccess:
+      description: Всё хорошо
+      type: object
+      required:
+        - ok
+      properties:
+        ok:
+          description: ok
+          type: boolean
+          example: true
+
+    Error:
+      description: Детальная информация об ошибке
+      type: object
+      required:
+        - code
+      properties:
+        code:
+          type: string
+          description: >
+            Код ошибки:
+             * `BAD_REQUEST` - Некорректный запрос к серверу
+             * `INTERNAL_SERVER_ERROR` - Внутренняя ошибка сервера
+          enum:
+            - BAD_REQUEST
+            - INTERNAL_SERVER_ERROR
+          example: BAD_REQUEST
+        message:
+          type: string
+          description: Описание ошибки
+        attribute:
+          type: string
+          description: Атрибут, с которым связана ошибка
+
+    UUID:
+      description: Уникальный идентификатор
+      type: string
+      minLength: 36
+      maxLength: 36
+      pattern: ^[{]?[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}[}]?$
+      example: "76dd5eb8-c235-41bb-8c10-227ed07bcc45"
+
+  parameters:
+    ID:
+      in: path
+      name: id
+      schema:
+        $ref: "#/components/schemas/UUID"
+      required: true
+      description: Уникальный идентификатор пользователя
+
+  responses:
+    Success:
+      description: Запрос успешно выполнен
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/RespSuccess"
+    Error:
+      description: Ошибка выполнения запроса
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            code: "CODE_ERROR"
+            message: "Описание ошибки"
